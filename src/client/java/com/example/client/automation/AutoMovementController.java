@@ -1,5 +1,6 @@
 package com.example.client.automation;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
@@ -14,9 +15,10 @@ public final class AutoMovementController {
     public static void stop(LocalPlayer player) {
         moving = false;
 
+        Minecraft client = Minecraft.getInstance();
+        client.options.keyUp.setDown(false);
+
         if (player != null) {
-            player.input.forwardImpulse = 0;
-            player.input.leftImpulse = 0;
             player.setSprinting(false);
         }
     }
@@ -54,8 +56,7 @@ public final class AutoMovementController {
         player.setYRot(yaw);
         player.setYHeadRot(yaw);
 
-        player.input.forwardImpulse = 1.0F;
-        player.input.leftImpulse = 0.0F;
+        Minecraft.getInstance().options.keyUp.setDown(true);
         player.setSprinting(false);
 
         moving = true;
