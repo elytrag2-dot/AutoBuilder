@@ -9,7 +9,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.InteractionResult;
@@ -169,7 +169,7 @@ public final class AutoPlacementRunner {
         );
 
         Block block = BuiltInRegistries.BLOCK.get(
-                ResourceLocation.parse(schematicBlock.blockId())
+                Identifier.parse(schematicBlock.blockId())
         );
 
         if (block.defaultBlockState().isAir()) {
