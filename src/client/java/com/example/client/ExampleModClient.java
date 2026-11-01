@@ -1,23 +1,37 @@
 package com.example.client;
 
 import com.example.ExampleMod;
+import com.example.client.gui.AutoBuilderScreen;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.client.KeyMapping;
+import org.lwjgl.glfw.GLFW;
 
 public class ExampleModClient implements ClientModInitializer {
 
-    private static long ticks = 0;
+    private static KeyMapping openGuiKey;
 
     @Override
     public void onInitializeClient() {
-
         ExampleMod.LOGGER.info("AutoBuilder client initialized!");
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            ticks++;
+        openGuiKey = KeyBindingHelper.registerKeyBinding(
+                new KeyMapping(
+                        "key.autobuilder.open_gui",
+                        InputConstants.Type.KEYSYM,
+                        GLFW.GLFW_KEY_RIGHT_SHIFT,
+                        KeyMapping.Category.MISC
+                )
+        );
 
-            // Future continuous layer-building controller.
-            // Actual block placement will be implemented separately.
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (openGuiKey.consumeClick()) {
+                if (client.screen == null) {
+                    client.setScreen(new AutoBuilderScreen());
+                }
+            }
         });
     }
 }
