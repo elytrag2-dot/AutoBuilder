@@ -53,9 +53,13 @@ public final class LitematicReader {
                 Map<?, ?> size = requireCompound(region.get("Size"), "Size");
                 Map<?, ?> position = requireCompound(region.get("Position"), "Position");
 
-                int sx = Math.abs(number(size.get("x"), "Size.x"));
-                int sy = Math.abs(number(size.get("y"), "Size.y"));
-                int sz = Math.abs(number(size.get("z"), "Size.z"));
+                int rawSizeX = number(size.get("x"), "Size.x");
+                int rawSizeY = number(size.get("y"), "Size.y");
+                int rawSizeZ = number(size.get("z"), "Size.z");
+
+                int sx = Math.abs(rawSizeX);
+                int sy = Math.abs(rawSizeY);
+                int sz = Math.abs(rawSizeZ);
 
                 int px = number(position.get("x"), "Position.x");
                 int py = number(position.get("y"), "Position.y");
@@ -132,12 +136,9 @@ public final class LitematicReader {
                     int localZ = (int) ((index / sx) % sz);
                     int localY = (int) (index / ((long) sx * sz));
 
-                    int worldX = px + (size.get("x") instanceof Number n
-                            && n.intValue() < 0 ? -localX : localX);
-                    int worldY = py + (size.get("y") instanceof Number n
-                            && n.intValue() < 0 ? -localY : localY);
-                    int worldZ = pz + (size.get("z") instanceof Number n
-                            && n.intValue() < 0 ? -localZ : localZ);
+                    int worldX = px + (rawSizeX < 0 ? rawSizeX + 1 : 0) + localX;
+                    int worldY = py + (rawSizeY < 0 ? rawSizeY + 1 : 0) + localY;
+                    int worldZ = pz + (rawSizeZ < 0 ? rawSizeZ + 1 : 0) + localZ;
 
                     allBlocks.add(new SchematicBlock(
                             blockId, worldX, worldY, worldZ));
