@@ -12,11 +12,18 @@ public final class AutoMovementController {
     private AutoMovementController() {
     }
 
-    public static void stop(LocalPlayer player) {
-        moving = false;
+    private static void releaseKeys() {
+        var options = Minecraft.getInstance().options;
+        options.keyUp.setDown(false);
+        options.keyDown.setDown(false);
+        options.keyLeft.setDown(false);
+        options.keyRight.setDown(false);
+        options.keyJump.setDown(false);
+    }
 
-        Minecraft client = Minecraft.getInstance();
-        client.options.keyUp.setDown(false);
+    public static void stop(LocalPlayer player) {
+        releaseKeys();
+        moving = false;
 
         if (player != null) {
             player.setSprinting(false);
@@ -36,8 +43,8 @@ public final class AutoMovementController {
             return;
         }
 
-        Vec3 destination = Vec3.atCenterOf(target);
-        Vec3 difference = destination.subtract(player.position());
+        Vec3 difference = Vec3.atCenterOf(target)
+                .subtract(player.position());
 
         double distance = Math.sqrt(
                 difference.x * difference.x
@@ -49,16 +56,35 @@ public final class AutoMovementController {
             return;
         }
 
-        float yaw = (float) Math.toDegrees(
-                Math.atan2(difference.z, difference.x)
-        ) - 90.0F;
+        double targetYaw = Math.toDegrees(
+                Math.atan2(difference.x, difference.z)
+        );
 
-        player.setYRot(yaw);
-        player.setYHeadRot(yaw);
+        double relativeYaw = targetYaw - player.getYRot();
 
-        Minecraft.getInstance().options.keyUp.setDown(true);
+        while (relativeYaw <= -180) relativeYaw += 360;
+        while (relativeYaw > 180) relativeYaw -= 360;
+
+        releaseKeys();
+
+        var options = Minecraft.getInstance().options;
+
+        if (Math.abs(relativeYaw) <= 45) {
+            options.keyUp.setDown(true);
+        } else if (Math.abs(relativeYaw) >= 135) {
+            options.keyDown.setDown(true);
+        } else if (relativeYaw > 0) {
+            options.keyRight.setDown(true);
+        } else {
+            options.keyLeft.setDown(true);
+        }
+
+        if (target.getY() > player.blockPosition().getY()
+                && distance < 4.0) {
+            options.keyJump.setDown(true);
+        }
+
         player.setSprinting(false);
-
         moving = true;
     }
 }
