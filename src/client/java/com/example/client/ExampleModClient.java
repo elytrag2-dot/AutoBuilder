@@ -19,7 +19,7 @@ public class ExampleModClient implements ClientModInitializer {
     public void onInitializeClient() {
         ExampleMod.LOGGER.info("AutoBuilder client initialized!");
 
-        HologramRenderer.register();
+        // HologramRenderer.register();
 
         ClientTickEvents.END_CLIENT_TICK.register(
                 AutoPlacementRunner::tick
