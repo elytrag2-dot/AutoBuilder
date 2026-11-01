@@ -49,10 +49,16 @@ public final class BuildPlanValidator {
         int missingCount = missing.values().stream()
                 .mapToInt(Integer::intValue).sum();
 
+        String missingDetails = missing.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .limit(8)
+                .map(entry -> entry.getKey() + " x" + entry.getValue())
+                .collect(java.util.stream.Collectors.joining(", "));
+
         String message = duplicates > 0
                 ? "Duplicate schematic positions detected"
                 : missingCount > 0
-                ? "Not enough blocks in inventory"
+                ? "Missing blocks: " + missingDetails
                 : "Build plan validated";
 
         return new ValidationResult(
