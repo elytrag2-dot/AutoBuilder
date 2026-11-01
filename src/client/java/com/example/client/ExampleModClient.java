@@ -2,6 +2,7 @@ package com.example.client;
 
 import com.example.ExampleMod;
 import com.example.client.gui.AutoBuilderScreen;
+import com.example.client.automation.AutoPlacementRunner;
 import com.example.client.render.HologramRenderer;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
@@ -19,6 +20,10 @@ public class ExampleModClient implements ClientModInitializer {
         ExampleMod.LOGGER.info("AutoBuilder client initialized!");
 
         HologramRenderer.register();
+
+        ClientTickEvents.END_CLIENT_TICK.register(
+                AutoPlacementRunner::tick
+        );
 
         openGuiKey = KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(

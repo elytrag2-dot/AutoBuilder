@@ -6,53 +6,56 @@ import java.util.List;
 
 public final class BuildQueue {
 
-    private final List<SchematicBlock> blocks;
+    public record QueueEntry(int index, SchematicBlock block) {}
+
+    private final List<QueueEntry> entries;
     private final boolean[] completed;
+
     private int currentIndex;
     private boolean paused;
     private boolean stopped;
 
     public BuildQueue(SchematicData schematic) {
-        this.blocks = new ArrayList<>(schematic.blocks());
+        this.entries = new ArrayList<>();
 
-        this.blocks.sort(
-                Comparator.comparingInt(SchematicBlock::y)
-                        .thenComparingInt(SchematicBlock::z)
-                        .thenComparingInt(SchematicBlock::x)
-        );
-
-        this.completed = new boolean[blocks.size()];
-    }
-
-    public synchronized SchematicBlock getNextBlock() {
-        if (paused || stopped) {
-            return null;
+        for (int i = 0; i < schematic.blocks().size(); i++) {
+            entries.add(new QueueEntry(i, schematic.blocks().get(i)));
         }
 
-        while (currentIndex < blocks.size()
-                && completed[currentIndex]) {
+        entries.sort(
+                Comparator.comparingInt((QueueEntry e) -> e.block().y())
+                        .thenComparingInt(e -> e.block().z())
+                        .thenComparingInt(e -> e.block().x())
+        );
+
+        completed = new boolean[entries.size()];
+    }
+
+    public synchronized QueueEntry getNextEntry() {
+        if (paused || stopped) return null;
+
+        while (currentIndex < entries.size()
+                && completed[entries.get(currentIndex).index()]) {
             currentIndex++;
         }
 
-        return currentIndex < blocks.size()
-                ? blocks.get(currentIndex)
+        return currentIndex < entries.size()
+                ? entries.get(currentIndex)
                 : null;
     }
 
-    public synchronized void markCompleted(int index) {
-        if (index >= 0 && index < completed.length) {
-            completed[index] = true;
+    public synchronized void markCompleted(int originalIndex) {
+        if (originalIndex >= 0 && originalIndex < completed.length) {
+            completed[originalIndex] = true;
         }
     }
 
     public synchronized void pause() {
-        paused = true;
+        if (!stopped) paused = true;
     }
 
     public synchronized void resume() {
-        if (!stopped) {
-            paused = false;
-        }
+        if (!stopped) paused = false;
     }
 
     public synchronized void stop() {
@@ -62,22 +65,20 @@ public final class BuildQueue {
 
     public synchronized int getCompletedCount() {
         int count = 0;
-
         for (boolean value : completed) {
             if (value) count++;
         }
-
         return count;
     }
 
     public int getTotalCount() {
-        return blocks.size();
+        return entries.size();
     }
 
     public synchronized double getProgress() {
-        return blocks.isEmpty()
+        return entries.isEmpty()
                 ? 100.0
-                : getCompletedCount() * 100.0 / blocks.size();
+                : getCompletedCount() * 100.0 / entries.size();
     }
 
     public synchronized boolean isPaused() {
@@ -89,6 +90,6 @@ public final class BuildQueue {
     }
 
     public synchronized boolean isFinished() {
-        return getCompletedCount() == blocks.size();
+        return getCompletedCount() == entries.size();
     }
 }
