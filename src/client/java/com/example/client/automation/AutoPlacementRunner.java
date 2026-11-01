@@ -168,11 +168,12 @@ public final class AutoPlacementRunner {
                 schematicBlock.z()
         );
 
-        Block block = BuiltInRegistries.BLOCK.get(
-                Identifier.parse(schematicBlock.blockId())
-        );
+        Block block = BuiltInRegistries.BLOCK
+                .get(Identifier.parse(schematicBlock.blockId()))
+                .map(reference -> reference.value())
+                .orElse(null);
 
-        if (block.defaultBlockState().isAir()) {
+        if (block == null || block.defaultBlockState().isAir()) {
             status = "Unsupported block: " + schematicBlock.blockId();
             running = false;
             return;
