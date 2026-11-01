@@ -2,6 +2,8 @@ package com.example.client.gui;
 
 import com.example.autobuilder.engine.SchematicData;
 import com.example.autobuilder.engine.SchematicLoader;
+import com.example.client.render.PreviewState;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -54,8 +56,23 @@ public class AutoBuilderScreen extends Screen {
                     if (schematic == null) {
                         status = "Load a schematic first";
                     } else {
-                        status = "Loaded " + schematic.getBlockCount()
-                                + " blocks";
+                        var player = Minecraft.getInstance().player;
+                        if (player == null) {
+                            status = "Enter a world first";
+                        } else {
+                            float yaw = player.getYRot();
+                            double dx = -Math.sin(Math.toRadians(yaw)) * 3;
+                            double dz = Math.cos(Math.toRadians(yaw)) * 3;
+
+                            BlockPos anchor = BlockPos.containing(
+                                    player.getX() + dx,
+                                    player.getY(),
+                                    player.getZ() + dz
+                            );
+
+                            PreviewState.start(schematic, anchor);
+                            status = "3D hologram preview active";
+                        }
                     }
                 }
         ).bounds(left + 140, top, 130, 22).build());
