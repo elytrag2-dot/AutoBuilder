@@ -11,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 
 public class AutoBuilderScreen extends Screen {
 
@@ -22,42 +21,16 @@ public class AutoBuilderScreen extends Screen {
         super(Component.literal("AutoBuilder"));
     }
 
-    private Path getSchematicFolder() {
+    Path getSchematicFolder() {
         return Minecraft.getInstance().gameDirectory.toPath()
                 .resolve("autobuilder")
                 .resolve("schematics");
     }
 
-    private void loadSchematic() {
+    void loadSelectedSchematic(Path file) {
         try {
-            Path folder = getSchematicFolder();
-            Files.createDirectories(folder);
-
-            Path file;
-
-            try (var files = Files.list(folder)) {
-                file = files
-                        .filter(path -> {
-                            String name = path.getFileName()
-                                    .toString().toLowerCase();
-
-                            return name.endsWith(".litematic")
-                                    || name.endsWith(".schem");
-                        })
-                        .max(Comparator.comparingLong(
-                                path -> path.toFile().lastModified()
-                        ))
-                        .orElse(null);
-            }
-
-            if (file == null) {
-                status = "No schematic found. Add a file to the folder.";
-                return;
-            }
-
             schematic = SchematicLoader.load(file);
             status = "Loaded: " + file.getFileName();
-
         } catch (IOException | RuntimeException exception) {
             status = "Load failed: " + exception.getMessage();
         }
@@ -65,18 +38,15 @@ public class AutoBuilderScreen extends Screen {
 
     @Override
     protected void init() {
-        int panelWidth = 280;
-        int left = (this.width - panelWidth) / 2;
+        int left = this.width / 2 - 140;
         int top = this.height / 2 - 65;
-
-        int buttonWidth = 130;
-        int buttonHeight = 22;
-        int gap = 10;
 
         addRenderableWidget(Button.builder(
                 Component.literal("Load Schematic"),
-                button -> loadSchematic()
-        ).bounds(left, top, buttonWidth, buttonHeight).build());
+                button -> Minecraft.getInstance().setScreen(
+                        new SchematicSelectionScreen(this)
+                )
+        ).bounds(left, top, 130, 22).build());
 
         addRenderableWidget(Button.builder(
                 Component.literal("Preview"),
@@ -88,25 +58,23 @@ public class AutoBuilderScreen extends Screen {
                                 + " blocks";
                     }
                 }
-        ).bounds(left + buttonWidth + gap, top,
-                buttonWidth, buttonHeight).build());
+        ).bounds(left + 140, top, 130, 22).build());
 
         addRenderableWidget(Button.builder(
                 Component.literal("Build"),
                 button -> status =
                         "Building automation is not implemented"
-        ).bounds(left, top + 32, buttonWidth, buttonHeight).build());
+        ).bounds(left, top + 32, 130, 22).build());
 
         addRenderableWidget(Button.builder(
                 Component.literal("Pause"),
                 button -> status = "Nothing is currently building"
-        ).bounds(left + buttonWidth + gap, top + 32,
-                buttonWidth, buttonHeight).build());
+        ).bounds(left + 140, top + 32, 130, 22).build());
 
         addRenderableWidget(Button.builder(
                 Component.literal("Resume"),
                 button -> status = "Nothing is paused"
-        ).bounds(left, top + 64, panelWidth, buttonHeight).build());
+        ).bounds(left, top + 64, 280, 22).build());
     }
 
     @Override
@@ -116,66 +84,43 @@ public class AutoBuilderScreen extends Screen {
             int mouseY,
             float delta
     ) {
-        graphics.fill(
-                0, 0, this.width, this.height,
-                0xCC080D18
-        );
+        graphics.fill(0, 0, width, height, 0xCC080D18);
 
-        int panelWidth = 310;
-        int panelHeight = 210;
-        int left = (this.width - panelWidth) / 2;
-        int top = (this.height - panelHeight) / 2;
+        int left = width / 2 - 155;
+        int top = height / 2 - 105;
 
-        graphics.fill(
-                left, top, left + panelWidth, top + panelHeight,
-                0xFF151E30
+        graphics.fill(left, top, left + 310, top + 210, 0xFF151E30);
+
+        graphics.drawCenteredString(
+                font, Component.literal("AUTOBUILDER"),
+                width / 2, top + 12, 0xFF55CCFF
         );
 
         graphics.drawCenteredString(
-                this.font,
-                Component.literal("AUTOBUILDER"),
-                this.width / 2,
-                top + 12,
-                0xFF55CCFF
+                font, Component.literal("Schematic Assistant"),
+                width / 2, top + 29, 0xFFAAAAAA
         );
 
         graphics.drawCenteredString(
-                this.font,
-                Component.literal("Schematic Assistant"),
-                this.width / 2,
-                top + 29,
-                0xFFAAAAAA
-        );
-
-        graphics.drawCenteredString(
-                this.font,
-                Component.literal(status),
-                this.width / 2,
-                top + 153,
-                0xFFFFFFFF
+                font, Component.literal(status),
+                width / 2, top + 153, 0xFFFFFFFF
         );
 
         if (schematic != null) {
             graphics.drawCenteredString(
-                    this.font,
+                    font,
                     Component.literal(
                             schematic.width() + " x "
                             + schematic.height() + " x "
                             + schematic.length()
                     ),
-                    this.width / 2,
-                    top + 169,
-                    0xFF55CCFF
+                    width / 2, top + 169, 0xFF55CCFF
             );
 
             graphics.drawCenteredString(
-                    this.font,
-                    Component.literal(
-                            "Blocks: " + schematic.getBlockCount()
-                    ),
-                    this.width / 2,
-                    top + 185,
-                    0xFF55FF99
+                    font,
+                    Component.literal("Blocks: " + schematic.getBlockCount()),
+                    width / 2, top + 185, 0xFF55FF99
             );
         }
 
