@@ -4,15 +4,10 @@
   "version": "${version}",
   "name": "AutoBuilder",
   "description": "Layer-by-layer schematic building assistant.",
-  "authors": [
-    "AutoBuilder"
-  ],
+  "authors": ["AutoBuilder"],
   "license": "CC0-1.0",
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "com.example.ExampleMod"
-    ],
     "client": [
       "com.example.client.ExampleModClient"
     ]
