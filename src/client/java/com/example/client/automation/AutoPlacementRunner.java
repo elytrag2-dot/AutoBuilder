@@ -61,6 +61,7 @@ public final class AutoPlacementRunner {
 
     public static void pause() {
         running = false;
+        AutoMovementController.stop(net.minecraft.client.Minecraft.getInstance().player);
         status = "Placement paused";
     }
 
@@ -73,6 +74,7 @@ public final class AutoPlacementRunner {
 
     public static void stop() {
         running = false;
+        AutoMovementController.stop(net.minecraft.client.Minecraft.getInstance().player);
 
         if (queue != null) {
             queue.stop();
@@ -229,6 +231,7 @@ public final class AutoPlacementRunner {
                 continue;
             }
 
+            AutoMovementController.stop(player);
             PlacementAimController.aimAt(player, hitPosition);
 
             BlockHitResult hit = new BlockHitResult(
@@ -254,8 +257,8 @@ public final class AutoPlacementRunner {
             }
         }
 
-        status = "No reachable support face for " + target;
-        running = false;
+        AutoMovementController.moveToward(player, target);
+        status = "Moving toward next block: " + target;
     }
 
     private static int findHotbarBlock(
